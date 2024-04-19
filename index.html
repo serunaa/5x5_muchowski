@@ -123,8 +123,17 @@
         }, 2000);
     }
 
+    function zresetujNieaktywnosc() {
+        clearTimeout(czasomierzNieaktywnosci);
+        if (zycia < 3){
+        uruchomNieaktywnosc();
+        }
+    }
+
     function rozpocznijGre() {
         startButton.disabled = true;
+        komunikaty.innerHTML = '';
+        uruchomNieaktywnosc();
         czasomierz = setInterval(() => {
             czas--;
             czasElement.textContent = czas + 's';
@@ -161,6 +170,7 @@
     }
 
     function kliknijPole(pole) {
+        zresetujNieaktywnosc();
         if (pole === ostatniePole) {
             wynik++;
             wynikElement.textContent = wynik;
@@ -178,12 +188,13 @@
         if (zycia === 0) {
             koniecGry('zycia');
         } else {
-            komunikaty.innerHTML = '<p>stracono życie! zostało ' + zycia + ' życ</p>';
+            komunikaty.innerHTML = '<p>stracono życie! zostało ' + zycia + ' żyć</p>';
             if (ostatniePole) {
                 ostatniePole.style.backgroundColor = 'black';
             }
             losujPole();
         }
+        zresetujNieaktywnosc();
     }
 
     function koniecGry(przyczyna) {
@@ -206,12 +217,15 @@
 
         if (przyczyna === 'reset'){
             rozpocznijGre();
-            komunikaty.innerHTML = '';
         }
     }
 
-    startButton.addEventListener('click', rozpocznijGre);
+    startButton.addEventListener('click', () => {
+        zresetujNieaktywnosc();
+        rozpocznijGre();
+    });
     resetButton.addEventListener('click', () => {
+        zresetujNieaktywnosc();
         koniecGry('reset');
     });
 </script>
