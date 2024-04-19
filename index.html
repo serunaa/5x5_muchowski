@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moja Gra</title>
+<style>
+    body {
+        background-color: black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    #gra {
+        width: 1100px;
+        height: 550px;
+        background-color: black;
+        position: relative;
+        border: 2px solid #42ff62;
+    }
+
+    button{
+        background-color: black;
+        color: #42ff62;
+    }
+
+    #interfejs {
+        position: absolute;
+        top: 0;
+        left: 0;
+        color: #42ff62;
+        padding: 20px;
+    }
+
+    #interfejs2 {
+        position: absolute;
+        top: 0;
+        right: 0;
+        color: #42ff62;
+        padding: 20px;
+    }
+
+    #interfejs .info {
+        margin-bottom: 10px;
+    }
+
+    #komunikaty {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #42ff62;
+        padding: 20px;
+        text-align: center;
+    }
+
+    #siatka {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        height: 80%;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        grid-template-rows: repeat(5, 1fr);
+        gap: 5px;
+    }
+
+    .pole {
+        background-color: black;
+        border: 1px solid #42ff62;
+        cursor: pointer;
+    }
+
+    #wynik {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        color: #42ff62;
+        padding: 20px;
+    }
+</style>
+</head>
+<body>
+<div id="gra">
+    <div id="interfejs">
+        <div class="info">CZAS: <span id="czas">60s</span></div>
+        <div class="info">ŻYCIA: <span id="zycia">3</span></div>
+        <div class="info">WYNIK: <span id="wynik-gracza">0</span></div>
+    </div>
+    <div id="interfejs2">
+        <button id="start">START</button>
+        <button id="reset">RESET</button>
+    </div>
+    <div id="komunikaty"></div>
+    <div id="siatka"></div>
+    <div id="wynik"></div>
+</div>
+
+<script>
+    const siatka = document.getElementById('siatka');
+    const komunikaty = document.getElementById('komunikaty');
+    const czasElement = document.getElementById('czas');
+    const zyciaElement = document.getElementById('zycia');
+    const wynikElement = document.getElementById('wynik-gracza');
+    const startButton = document.getElementById('start');
+    const resetButton = document.getElementById('reset');
+
+    let czas = 60;
+    let zycia = 3;
+    let wynik = 0;
+    let czasomierz;
+    let ostatniePole;
+    let czasomierzNieaktywnosci;
+
+    function uruchomNieaktywnosc() {
+        czasomierzNieaktywnosci = setTimeout(() => {
+            straconoZycie();
+        }, 2000);
+    }
+
+    function rozpocznijGre() {
+        startButton.disabled = true;
+        czasomierz = setInterval(() => {
+            czas--;
+            czasElement.textContent = czas + 's';
+            if (czas === 0) {
+                koniecGry('czas');
+            }
+        }, 1000);
+        generujSiatke();
+        setInterval(() => {
+            if (!ostatniePole) {
+                straconoZycie();
+            }
+        }, 2000);
+    }
+
+    function generujSiatke() {
+        for (let i = 0; i < 5; i++) {
+            for (let j = 0; j < 5; j++) {
+                const pole = document.createElement('div');
+                pole.classList.add('pole');
+                pole.addEventListener('click', () => kliknijPole(pole));
+                siatka.appendChild(pole);
+            }
+        }
+        losujPole();
+    }
+
+    function losujPole() {
+        const pola = document.querySelectorAll('.pole');
+        const losowyIndex = Math.floor(Math.random() * pola.length);
+        const losowePole = pola[losowyIndex];
+        losowePole.style.backgroundColor = '#42ff62';
+        ostatniePole = losowePole;
+    }
+
+    function kliknijPole(pole) {
+        if (pole === ostatniePole) {
+            wynik++;
+            wynikElement.textContent = wynik;
+            pole.style.backgroundColor = 'black';
+            losujPole();
+            komunikaty.innerHTML = '<p>dobry strzał!</p>';
+        } else {
+            straconoZycie();
+        }
+    }
+
+    function straconoZycie() {
+        zycia--;
+        zyciaElement.textContent = zycia;
+        if (zycia === 0) {
+            koniecGry('zycia');
+        } else {
+            komunikaty.innerHTML = '<p>stracono życie! zostało ' + zycia + ' życ</p>';
+            if (ostatniePole) {
+                ostatniePole.style.backgroundColor = 'black';
+            }
+            losujPole();
+        }
+    }
+
+    function koniecGry(przyczyna) {
+        clearInterval(czasomierz);
+        startButton.disabled = false;
+        komunikaty.innerHTML = '<p>koniec gry! ';
+        if (przyczyna === 'czas') {
+            komunikaty.innerHTML += 'czas minął!</p>';
+        } else if (przyczyna === 'zycia') {
+            komunikaty.innerHTML += 'stracono wszystkie życia!</p>';
+        }
+        komunikaty.innerHTML += '<p>WYNIK: ' + wynik + '</p>';
+        czas = 60;
+        zycia = 3;
+        wynik = 0;
+        czasElement.textContent = czas + 's';
+        zyciaElement.textContent = zycia;
+        wynikElement.textContent = wynik;
+        siatka.innerHTML = '';
+
+        if (przyczyna === 'reset'){
+            rozpocznijGre();
+            komunikaty.innerHTML = '';
+        }
+    }
+
+    startButton.addEventListener('click', rozpocznijGre);
+    resetButton.addEventListener('click', () => {
+        koniecGry('reset');
+    });
+</script>
+</body>
+</html>
